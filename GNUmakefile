@@ -3,14 +3,14 @@
 
 OBJC_RUNTIME_LIB=ng
 
-#include $(GNUSTEP_MAKEFILES)/common.make
+include $(GNUSTEP_MAKEFILES)/common.make
 
 FRAMEWORK_NAME = MPWFoundation
 
-GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=base.make
+# GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=base.make
 GNUSTEP_BUILD_DIR = ~/Build
 
-include $(GNUSTEP_MAKEFILES)/common.make
+# include $(GNUSTEP_MAKEFILES)/common.make
 
 libMPWFoundation_DLL_DEF = MPWFoundation.def
 
@@ -223,4 +223,4 @@ test    : libMPWFoundation tester
 	LD_LIBRARY_PATH=/usr/GNUstep/Local/Library/Libraries:/usr/local/lib:${HOME}/Build/obj/ ./GNUstep/testmpwfoundation
 
 tester  :
-	$(CC)  -fobjc-runtime=gnustep-2.1 -fblocks  -I/usr/GNUstep/Local/Library/Headers/ -I.headers -o GNUstep/testmpwfoundation GNUstep/testmpwfoundation.m -L/usr/GNUstep/Local/Library/Libraries/ -L ${HOME}/Build/obj -lMPWFoundation -lgnustep-base -L/usr/local/lib/ -lobjc
+	$(CC)  -fobjc-runtime=gnustep-2.1 -fblocks  -fuse-ld=gold -I/usr/GNUstep/Local/Library/Headers/ -I.headers -o GNUstep/testmpwfoundation GNUstep/testmpwfoundation.m  -L ${HOME}/Build/obj -L /usr/GNUstep/Local/Library/Libraries/ -lMPWFoundation -lgnustep-base -L/usr/local/lib/ -lobjc
