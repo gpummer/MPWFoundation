@@ -17,15 +17,15 @@
 
 @implementation MPWDelimitedTable
 
-objectAccessor(NSData, data, _setData)
-lazyAccessor(NSArray, headerKeys, setHeaderKeys, computeHeaderKeys)
-objectAccessor(NSString, fieldDelimiter, _setFieldDelimiter)
-lazyAccessor(MPWIntArray, lineOffsets, setLineOffsets, computeLineOffsets)
+objectAccessor(NSData*, data, _setData)
+lazyAccessor(NSArray*, headerKeys, setHeaderKeys, computeHeaderKeys)
+objectAccessor(NSString*, fieldDelimiter, _setFieldDelimiter)
+lazyAccessor(MPWIntArray*, lineOffsets, setLineOffsets, computeLineOffsets)
 intAccessor(eolLength, setEOLLength)
-objectAccessor(MPWObjectCache, subdatas, setSubdatas)
+objectAccessor(MPWObjectCache*, subdatas, setSubdatas)
 
-lazyAccessor(NSArray, keysOfInterest , _setKeysOfInterest, headerKeys)
-lazyAccessor(MPWIntArray, indexesOfInterest , setIndexesOfInterest, computeIndexesOfInterest)
+lazyAccessor(NSArray*, keysOfInterest , _setKeysOfInterest, headerKeys)
+lazyAccessor(MPWIntArray*, indexesOfInterest , setIndexesOfInterest, computeIndexesOfInterest)
 
 
 
@@ -43,7 +43,7 @@ lazyAccessor(MPWIntArray, indexesOfInterest , setIndexesOfInterest, computeIndex
         [NSException raise:@"limitcheck" format:@"field delimiter length %ld exceed max 10",newLen];
     }
     fieldDelimiterLength=(int)newLen;
-    [newFieldDelim getBytes:fieldDelimiterBytes maxLength:10 usedLength:NULL encoding:NSASCIIStringEncoding options:0 range:NSMakeRange(0,10) remainingRange:NULL];
+    [newFieldDelim getBytes:fieldDelimiterBytes maxLength:10 usedLength:NULL encoding:NSASCIIStringEncoding options:0 range:NSMakeRange(0,fieldDelimiterLength) remainingRange:NULL];
     fieldDelimiterBytes[fieldDelimiterLength]=0;
 }
 
@@ -218,26 +218,10 @@ lazyAccessor(MPWIntArray, indexesOfInterest , setIndexesOfInterest, computeIndex
             forKeys:[self headerKeys]];
 }
 
--(void)inRange:(NSRange)range do:(void(^)(NSDictionary* theDict, int anIndex))block
+-(void)inRange:(NSRange)range withContainer:(NSMutableArray*)theDict offsets:(int*)stringTableOffsets maxElements:(int)maxElements indexes:(MPWIntArray *)indexes do:(void(^)(id theCollection, int anIndex))block
 {
-    NSArray *keys=[self keysOfInterest];
-    MPWIntArray *indexes=[self indexesOfInterest];
-    MPWSmallStringTable *theDict;
-    
-    long maxElements =[indexes count];
     id elements[ maxElements+10];
-    id headerArray[ maxElements+10];
-    int stringTableOffsets[ maxElements+10];
     int *keyIndexes=[indexes integers];
-    
-    [keys getObjects:headerArray range:NSMakeRange(0, maxElements)];
-    theDict=[MPWSmallStringTable dictionaryWithObjects:headerArray
-                                               forKeys:headerArray
-                                                 count:maxElements];
-    
-    for (int i=0;i<maxElements;i++) {
-        stringTableOffsets[i]=[theDict offsetForKey:headerArray[i]];
-    }
     for (long i=range.location;i<range.location + range.length;i++) {
         @autoreleasepool {
             long numElems=[self dataAtIndex:(int)i into:elements mapper:keyIndexes max:(int)maxElements];
@@ -248,12 +232,32 @@ lazyAccessor(MPWIntArray, indexesOfInterest , setIndexesOfInterest, computeIndex
                         [theDict replaceObjectAtIndex:stringTableOffsets[j] withObject:elem];
                     }
                 }
-
             block( theDict,(int)i);
         }
     }
     
 }
+
+-(void)inRange:(NSRange)range do:(void(^)(NSDictionary* theDict, int anIndex))block
+{
+    NSArray *keys=[self keysOfInterest];
+    MPWIntArray *indexes=[self indexesOfInterest];
+    long maxElements =[indexes count];
+    id headerArray[ maxElements+10];
+    int stringTableOffsets[ maxElements+10];
+    MPWSmallStringTable *theDict;
+    [keys getObjects:headerArray range:NSMakeRange(0, maxElements)];
+    theDict=[MPWSmallStringTable dictionaryWithObjects:headerArray
+                                               forKeys:headerArray
+                                                 count:maxElements];
+    
+    
+    for (int i=0;i<maxElements;i++) {
+        stringTableOffsets[i]=[theDict offsetForKey:headerArray[i]];
+    }
+    [self inRange:range withContainer:theDict offsets:stringTableOffsets maxElements:maxElements indexes:indexes do:block];
+}
+
 
 -(void)do:(void(^)(NSDictionary* theDict, int anIndex))block
 {
@@ -670,7 +674,6 @@ lazyAccessor(MPWIntArray, indexesOfInterest , setIndexesOfInterest, computeIndex
              @"testKeysOfInterest",
              @"testQuoteEscapedEntries",
              @"testPlistFromCSV",
-
              ];
 }
 

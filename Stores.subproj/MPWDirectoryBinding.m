@@ -12,7 +12,7 @@
 
 @implementation MPWDirectoryBinding
 
-objectAccessor(NSArray, contents, setContents)
+objectAccessor(NSArray*, contents, setContents)
 boolAccessor(fancy, setFancy)
 
 -(instancetype)initWithContents:(NSArray *)newContents
@@ -25,6 +25,11 @@ boolAccessor(fancy, setFancy)
 -children
 {
     return contents;
+}
+
+-(long)count
+{
+    return contents.count;
 }
 
 -(void)dealloc

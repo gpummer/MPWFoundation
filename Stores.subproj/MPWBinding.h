@@ -7,19 +7,21 @@
 
 #import <MPWFoundation/MPWReference.h>
 #import <MPWFoundation/MPWWriteStream.h>
+#import <MPWFoundation/MPWAbstractStore.h>
 
 @class MPWReference,MPWAbstractStore;
-@protocol MPWReferencing;
+@protocol MPWReferencing,MPWStorage;
 
 @protocol MPWBinding
 
 +(instancetype)bindingWithReference:aReference inStore:aStore;
+-(instancetype)initWithReference:aReference inStore:aStore;
 
 @property (nonatomic, retain) id value;
 
 -(void)delete;
 
--asScheme;
+-(id <MPWStorage>)asScheme;
 
 // hierarchy support
 

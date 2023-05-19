@@ -75,8 +75,6 @@
 //    }
 //}
 
-
-
 -(BOOL)existsAndIsDirectory:(BOOL*)isDirectory
 {
 	NSFileManager *manager=[NSFileManager defaultManager];
@@ -153,25 +151,21 @@
 //    }
 //}
 
+-mkdir:(NSString*)additionalPath
+{
+    NSString *fullPath=[[self path] stringByAppendingPathComponent:additionalPath];
+    NSError *error=nil;
+    BOOL success = [[NSFileManager defaultManager] createDirectoryAtPath:fullPath  withIntermediateDirectories:YES attributes:nil error:&error];
+    if (!success) {
+        NSLog(@"error: %@",error);
+    }
+    return [[self store] bindingForReference:fullPath inContext:nil];
+}
+
 -(void)open
 {
     [[NSClassFromString(@"NSWorkspace") sharedWorkspace] openURL:[self URL]];
 }
-
-// FIXME:  change notification should probably be delegated to the store/scheme handler
-
-//-(void)didChange
-//{
-//    if ( !ignoreChanges) {
-//        ignoreChanges=YES;
-//        if (delegate && [self modifiedSinceLastWritten]) {
-////            NSLog(@"%@ sending changed: to delegate:%p/%@/%@",[self class],delegate,[delegate class],delegate);
-//            [[delegate onMainThread] changed:self];
-////            NSLog(@"did send changed to delegate: %@",delegate);
-//        }
-//        ignoreChanges=NO;
-//    }
-//}
 
 -(NSString*)urlPath
 {
@@ -182,28 +176,6 @@
 {
     return [MPWFDStreamSource name:[self path]];
 }
-
--stream
-{
-    return [self source];
-}
-
--(MPWStreamSource*)lines
-{
-    MPWFDStreamSource *s=[self stream];
-    [s setTarget:[MPWBytesToLines stream]];
-    return s;
-}
-
--(MPWStreamSource*)linesAfter:(int)numToSkip
-{
-    MPWStreamSource *stream=[self lines];
-    MPWSkipFilter *skipper=[MPWSkipFilter stream];
-    skipper.skip = numToSkip;
-    [stream setFinalTarget:skipper];
-    return stream;
-}
-
 
 
 -(void)dealloc

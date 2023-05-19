@@ -61,10 +61,13 @@
 
 @interface MPWFileTarget : MPWFileDescriptorTarget
 {
+    int bufferSize;
     char buffer[LARGEBUFSIZE];
     int  written;
 }
 
+-(int)bufferSize;
+-(void)setBufferSize:(int)newSize;
 
 @end
 
@@ -325,8 +328,13 @@ intAccessor( indentAmount , setIndentAmount )
 #endif
 -(void)writeString:(NSString*)string
 {
-//	NSLog(@"-[MPWByteStream writeString:%@]",string);
-	[self outputString:string];
+    [self outputString:string];
+}
+
+-(void)writeNullTerminatedString:(NSString*)string
+{
+    [self writeString:string];
+    [self appendBytes:"" length:1];
 }
 
 -(void)writeData:(NSData*)data
@@ -713,8 +721,8 @@ scalarAccessor( SEL, selector, setSelector )
 
 @implementation MPWAbstractFileTarget
 
-objectAccessor( NSString, tempFileName, setTempFileName )
-objectAccessor( NSString, finalFileName, setFinalFileName )
+objectAccessor(NSString*, tempFileName, setTempFileName )
+objectAccessor(NSString*, finalFileName, setFinalFileName )
 
 +(instancetype)fileNameTarget:(NSString*)filename mode:(NSString*)mode atomically:(BOOL)atomic
 {
@@ -891,6 +899,11 @@ intAccessor( fd, setFd )
 	return self;
 }
 
+-(void)redirectTo:(MPWFileDescriptorTarget*)otherFDTarget
+{
+    dup2([otherFDTarget fd], [self fd]);
+}
+
 -(instancetype)initWithName:(NSString*)name mode:(NSString*)mode // atomically:(BOOL)atomic
 {
     return [self initWithFd:open( [name fileSystemRepresentation], O_WRONLY | O_CREAT , S_IRUSR | S_IWUSR)];
@@ -922,9 +935,21 @@ intAccessor( fd, setFd )
 
 @implementation MPWFileTarget
 
+-(int)bufferSize
+{
+    return bufferSize;
+}
+
+-(void)setBufferSize:(int)newSize
+{
+    bufferSize = MAX(MIN( newSize, LARGEBUFSIZE), 0);
+}
+
+
 -initWithFd:(int)newFd
 {
     self=[super initWithFd:newFd];
+    [self setBufferSize:LARGEBUFSIZE];
     return self;
 }
 
@@ -938,10 +963,10 @@ intAccessor( fd, setFd )
 
 -(void)appendBytes:(const void *)bytes length:(unsigned long)len
 {
-    if ( len + written >= LARGEBUFSIZE) {
+    if ( len + written >= bufferSize) {
         [self flushLocal];
     }
-    if ( len > LARGEBUFSIZE) {
+    if ( len > bufferSize) {
         [super appendBytes:bytes length:len];
     } else {
         memcpy( buffer+written, bytes, len);

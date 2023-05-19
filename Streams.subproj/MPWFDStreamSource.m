@@ -36,9 +36,14 @@
     return [self initWithFD:0];
 }
 
++(instancetype)Stdin
+{
+    return [[[self alloc] init] autorelease];
+}
+
 -(int)defaultBufferSize
 {
-    return 8192;
+    return 512 * 1024;
 }
 
 +(instancetype)fd:(int)fd

@@ -27,17 +27,48 @@
     return NSMakeRect(50, 50, 700, 400);
 }
 
+-(NSScrollView*)inScrollView:(NSRect)scrollViewRect
+{
+    NSScrollView *sv=[[[NSScrollView alloc] initWithFrame:scrollViewRect] autorelease];
+    [sv setDocumentView:self];
+    return sv;
+}
+
 -openInWindow:(NSString*)windowName
 {
-    NSWindow *theWindow=[[NSWindow alloc] initWithContentRect:[self defaultWindowRect]
+    NSRect r=[self frame];
+    NSRect defaultRect = [self defaultWindowRect];
+    if ( r.size.width == 0 || r.size.height == 0) {
+        r.size = defaultRect.size;
+    }
+    r.size.width += 5;
+    r.size.height += 5;
+    if ( r.origin.x == 0 || r.origin.y == 0) {
+        r.origin = defaultRect.origin;
+    }
+
+    NSWindow *theWindow=[[NSWindow alloc] initWithContentRect:r
                                                     styleMask:NSWindowStyleMaskTitled|NSWindowStyleMaskClosable|NSWindowStyleMaskResizable|NSWindowStyleMaskMiniaturizable
                                                       backing:NSBackingStoreBuffered defer:NO];
     [theWindow setTitle:windowName];
+//    [[theWindow contentView] addSubview:self];
     [theWindow setContentView:self];
     [theWindow makeKeyAndOrderFront:nil];
     return theWindow;
 }
 
+-main:args
+{
+    NSLog(@"-[%@ main:]",[self class]);
+    NSWindow *w=[self openInWindow:@"Window"];
+    NSLog(@"window: %@",w);
+    return [w main:args];
+}
+
+-(int)runWithStdin:source Stdout:target
+{
+    return [[self main:nil] intValue];
+}
 -openInWindowController:(NSString*)windowName
 {
     NSWindow *window=[self openInWindow:windowName];
@@ -52,6 +83,17 @@
     [aView openInWindow:name];
     return aView ;
 }
+
+
+@end
+
+@implementation NSControl(setAction)
+
+-(void)setTheAction:(NSString*)action
+{
+    [self setAction:NSSelectorFromString(action)];
+}
+
 
 
 @end

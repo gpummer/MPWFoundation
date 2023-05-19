@@ -8,7 +8,7 @@
 #import <Foundation/Foundation.h>
 
 @protocol MPWReferencing,Streaming;
-@class MPWReference,MPWGenericReference,MPWByteStream,MPWDirectoryBinding,MPWBinding;
+@class MPWReference,MPWGenericReference,MPWByteStream,MPWDirectoryBinding,MPWBinding,MPWPathRelativeStore;
 
 
 @protocol MPWStorage <NSObject>
@@ -17,6 +17,7 @@
 -(void)at:(id <MPWReferencing>)aReference put:theObject;
 -(void)merge:theObject at:(id <MPWReferencing>)aReference;
 -(void)deleteAt:(id <MPWReferencing>)aReference;
+-(void)mkdirAt:(id <MPWReferencing>)reference;
 -(id <MPWReferencing>)referenceForPath:(NSString*)path;
 
 @optional
@@ -28,6 +29,7 @@
 -(BOOL)hasChildren:(id <MPWReferencing>)aReference;
 
 -(MPWBinding*)bindingForReference:aReference inContext:aContext;
+-(id<MPWStorage>)relativeStoreAt:(id <MPWReferencing>)reference;
 
 @end
 
@@ -54,7 +56,7 @@
 @property (nonatomic, retain)  NSString *name;
 
 +(instancetype)store;
-+(NSArray*)mapStores:(NSArray*)storeDescriptions;
++(NSArray*)storesWithDescription:(NSArray*)storeDescriptions;
 +(instancetype)stores:(NSArray*)storeDescriptions;
 
 -objectForKeyedSubscript:key;
@@ -65,6 +67,7 @@
 -(void)setSourceStores:(NSArray <MPWStorage>*)stores;
 -(void)setStoreDict:(NSDictionary*)storeDict;
 -(MPWDirectoryBinding*)listForNames:(NSArray*)nameList;
+-(MPWPathRelativeStore*)relativeStoreAt:(id <MPWReferencing>)reference;
 
 
 -(void)graphViz:(MPWByteStream*)aStream;

@@ -14,7 +14,7 @@
 #endif
 
 #import <AccessorMacros.h>
-
+#import "MPWByteStream.h"
 
 //#import "Foundation/NSDebug.h"
 
@@ -163,9 +163,19 @@
     }
 }
 
+-(instancetype)concat:(NSDictionary*)other
+{
+    NSMutableDictionary *combined=[NSMutableDictionary dictionaryWithDictionary:self];
+    for (id key in [other keyEnumerator]) {
+        combined[key]=other[key];
+    }
+    return combined;
+}
+
+
 @end
 
-@implementation NSArray(ivarAccess)
+@implementation NSArray(additions)
 
 +(NSString*)ivarNameAtOffset:(int)ivarOffset orIndex:(int)index
 {
@@ -179,6 +189,18 @@
 }
 
 @end
+
+@implementation NSData(concat)
+
+-concat:other
+{
+    NSMutableData *combined = [self mutableCopy];
+    [combined appendData:[other asData]];
+    return [combined autorelease];
+}
+
+@end
+
 @implementation NSObject(memberOfSet1)
 
 -(id)memberOfSet:(NSSet*)aSet
@@ -187,6 +209,75 @@
 }
 
 @end
+
+@implementation NSObject(stackCheck)
+
+
++(BOOL)isPointerOnStackAboveMe:(void*)ptr within:(long)maxDiff
+{
+    void *roughlyMyFrame = &_cmd;
+    long differenceFromPtr = ptr - roughlyMyFrame;
+    return differenceFromPtr > 0 && differenceFromPtr < maxDiff;
+}
+
++(BOOL)isPointerOnStackAboveMe:(void*)ptr
+{
+    return [self isPointerOnStackAboveMe:ptr within:1000];
+}
+
+
++(id)isPointerOnStackAboveMeForST:(void*)ptr
+{
+    return @([self isPointerOnStackAboveMe:ptr]);
+}
+
+@end
+
+
+@implementation NSObject(stprocess)
+
+
+-main:args
+{
+    return @(0);
+}
+
+-Stdout
+{
+    return [MPWByteStream Stdout];
+}
+
+
+-(int)runWithStdin:(id <StreamSource>)source Stdout:(MPWByteStream*)target
+{
+    [[target do] println:[self each]];
+    return 0;
+}
+
++(int)runWithStdin:(id <StreamSource>)source Stdout:(MPWByteStream*)target
+{
+    [[[self new] autorelease] runWithStdin:source Stdout:target];
+    return 0;
+}
+
++(int)main:args
+{
+    return [[[[[self alloc] init] autorelease] main:args] intValue];
+}
+
++(int)mainArgc:(int)argc argv:(char**)argv
+{
+    NSMutableArray *args=[NSMutableArray array];
+    [NSClassFromString(@"MPWBlockContext") class];            //
+    for (int i=0;i<argc;i++) {
+        [args addObject:@(argv[i])];
+    }
+    return [self main:args];
+}
+
+
+@end
+
 
 #import "DebugMacros.h"
 
@@ -240,11 +331,33 @@ intAccessor( debugLevel, setDebugLevel )
 
 +testSelectors
 {
-	return [NSArray arrayWithObjects:
+	return @[
 			@"testIvarNames",
 			@"testIvarAtOffset",
-			nil];
+			];
 }
 
 @end
 
+@interface NSDictionaryAdditionsTesting : NSObject @end
+@implementation NSDictionaryAdditionsTesting
+
++(void)testConcatDicts
+{
+    NSDictionary *a=@{ @"a": @(3) };
+    NSDictionary *b=@{ @"b": @(12) };
+    NSDictionary *combined = [a concat:b];
+    INTEXPECT( combined.count,2, @"elements");
+    IDEXPECT(combined[@"a"],@(3), @"from a");
+    IDEXPECT(combined[@"b"],@(12), @"from a");
+
+}
+
++testSelectors
+{
+    return @[
+        @"testConcatDicts",
+    ];
+}
+
+@end

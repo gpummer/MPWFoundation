@@ -34,6 +34,11 @@ CONVENIENCEANDINIT( binding, WithReference:(MPWGenericReference*)ref inStore:(MP
     [self.store at:self.reference put:newValue];
 }
 
+-post:newValue
+{
+    return [self.store at:self.reference post:newValue];
+}
+
 
 -(void)delete
 {
@@ -60,19 +65,14 @@ CONVENIENCEANDINIT( binding, WithReference:(MPWGenericReference*)ref inStore:(MP
     return [(MPWGenericReference*)self.reference path];
 }
 
--(instancetype)div:(MPWBinding*)other
-{
-    return [[self class] bindingWithReference:[(MPWGenericReference*)[self reference] referenceByAppendingReference:(MPWGenericReference*)other.reference] inStore:self.store];
-}
-
 -(id <MPWReferencing>)asReference
 {
     return [self reference];
 }
 
--asScheme
+-(MPWPathRelativeStore*)asScheme
 {
-    return [MPWPathRelativeStore storeWithSource:self.store reference:self.reference];
+    return [self.store relativeStoreAt:self.reference];
 }
 
 -(NSArray*)pathComponents
@@ -98,6 +98,12 @@ CONVENIENCEANDINIT( binding, WithReference:(MPWGenericReference*)ref inStore:(MP
 - (instancetype)referenceByAppendingReference:(id<MPWReferencing>)other {
     return [[self class] bindingWithReference:[(MPWGenericReference*)[self reference] referenceByAppendingReference:(MPWGenericReference*)other] inStore:self.store];
 }
+
+-(instancetype)div:(MPWBinding*)other
+{
+    return [self referenceByAppendingReference:other];
+}
+
 
 -(void)writeObject:anObject
 {
@@ -152,18 +158,23 @@ CONVENIENCEANDINIT( binding, WithReference:(MPWGenericReference*)ref inStore:(MP
 
 @end
 
-// #import "DebugMacros.h"
+#import "DebugMacros.h"
 
 @implementation MPWBinding(tests)
 
-+(void)testCanStreamIntoBinding
++(void)testAsScheme
 {
+    MPWAbstractStore *s=[MPWAbstractStore store];
+    MPWBinding *binding=[s bindingForReference:@"hello/world" inContext:nil];
+    MPWPathRelativeStore* relativeStore = (MPWPathRelativeStore*)[binding asScheme];
+
+    IDEXPECT( [relativeStore mapReference:@"base"], @"hello/world/base", @"mapped from scheme");
 }
 
-+(NSArray*)testSelectors
++(NSArray<NSString*>*)testSelectors
 {
     return @[
-//        @"testCanStreamIntoBinding",
+        @"testAsScheme",
     ];
 }
 

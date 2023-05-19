@@ -32,6 +32,25 @@
     return [self dataUsingEncoding:NSUTF8StringEncoding];
 }
 
+-(NSArray<NSString*>*)resultsOfCommand
+{
+    FILE *fin = popen([self UTF8String], "r");
+    NSMutableArray<NSString*> *result=[NSMutableArray array];
+    if ( fin ) {
+        char buffer[16390]="";
+        char *fgetsResult;
+        do {
+            fgetsResult=fgets(buffer, 16384, fin);
+            if ( strlen(buffer)) {
+                [result addObject:[NSString stringWithUTF8String:buffer]];
+            }
+        } while (fgetsResult!=NULL);
+        pclose(fin);
+    }
+    return result;
+
+}
+
 -(BOOL)writeToURL:(NSURL*)url options:(long)option error:(NSError**)error
 {
     return [[self asData] writeToURL:url options:option error:error];
@@ -56,10 +75,20 @@
     return result;
 }
 
+-at:(NSNumber*)anIndex
+{
+    return [self substringWithRange:NSMakeRange(anIndex.intValue,1)];
+}
+
 +(id)stringWithCharacter:(int)theChar
 {
     unichar ch=theChar;
     return [self stringWithCharacters:&ch length:1];
+}
+
+-(NSString*)lf
+{
+    return [self stringByAppendingString:@"\n"];
 }
 
 -(NSComparisonResult)numericCompare:other
@@ -326,3 +355,15 @@ NSString *MPWConvertToString( void* any, char *typeencoding ) {
 
 @end
 
+
+@implementation NSCharacterSet(whiteSpaceAndPunctuation)
+
++(instancetype)whiteSpaceAndPunctuation
+{
+    NSMutableCharacterSet *ws=[NSMutableCharacterSet whitespaceAndNewlineCharacterSet];
+    NSCharacterSet *punct=[NSCharacterSet punctuationCharacterSet];
+    [ws formUnionWithCharacterSet:punct];
+    return ws;
+}
+
+@end

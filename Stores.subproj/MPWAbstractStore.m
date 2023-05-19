@@ -13,6 +13,9 @@
 #import "MPWDirectoryBinding.h"
 #import "NSObjectFiltering.h"
 #import "NSDictAdditions.h"
+#import "MPWPathRelativeStore.h"
+#import "MPWRESTCopyStream.h"
+#import "MPWLoggingStore.h"
 
 @interface NSArray(unique)
 
@@ -33,12 +36,12 @@
     if ( [storeDescription respondsToSelector:@selector(store)]) {
         storeDescription=[storeDescription store];
     } else if ( [storeDescription isKindOfClass:[NSArray class]]) {
-        storeDescription=[self mapStores:storeDescription].firstObject;
+        storeDescription=[self storesWithDescription:storeDescription].firstObject;
     }
     return storeDescription;
 }
 
-+(NSArray*)mapStores:(NSArray*)storeDescriptions
++(NSArray*)storesWithDescription:(NSArray*)storeDescriptions
 {
  //   NSMutableOrderedSet *stores=[NSMutableOrderedSet orderedSetWithCapacity:storeDescriptions.count];
     NSMutableArray *stores=[NSMutableArray arrayWithCapacity:storeDescriptions.count];
@@ -82,7 +85,7 @@
 
 +(instancetype)stores:(NSArray*)storeDescriptions
 {
-    return [self mapStores:storeDescriptions].firstObject;
+    return [self storesWithDescription:storeDescriptions].firstObject;
 }
 
 -(instancetype)initWithArray:(NSArray *)stores
@@ -98,6 +101,11 @@
 -(void)at:(MPWReference*)aReference put:theObject
 {
     return ;
+}
+
+-(id)at:(MPWReference*)aReference post:theObject
+{
+    return nil;
 }
 
 -(void)merge:theObject at:(id <MPWReferencing>)aReference
@@ -155,6 +163,26 @@
 -(MPWDirectoryBinding*)listForNames:(NSArray*)nameList
 {
     return [[[MPWDirectoryBinding alloc] initWithContents:[[MPWGenericReference collect] referenceWithPath:[nameList each]]] autorelease];
+}
+
+
+-(MPWRESTCopyStream*)syncToTarget:(id <MPWStorage>)target
+{
+    MPWRESTCopyStream *copier = [[MPWRESTCopyStream alloc] initWithSource:self target:target];
+    MPWLoggingStore *logger = [self logger];
+    [logger setLog:copier];
+    return copier;
+}
+
+-(void)copyFrom:(id <MPWStorage>)source
+{
+    MPWRESTCopyStream *copier = [[MPWRESTCopyStream alloc] initWithSource:source target:self];
+    [copier update];
+}
+
+-(void)copyTo:(id <MPWStorage>)dest
+{
+    [dest copyFrom:self];
 }
 
 -(NSString*)generatedName
@@ -221,6 +249,18 @@
 {
     return [self bindingForReference:[self referenceForPath:path]];
 }
+
+-(id<MPWStorage>)relativeStoreAt:(id <MPWReferencing>)reference
+{
+    return [MPWPathRelativeStore storeWithSource:self reference:reference];
+}
+
+-(void)mkdirAt:(id <MPWReferencing>)reference
+{
+    [self at:reference put:nil];
+}
+
+
 
 -(void)dealloc
 {
@@ -299,22 +339,6 @@
     return [self get:uri parameters:nil];
 }
 
-//-objectForReference:ref
-//{
-//    return [self at:ref];
-//}
-
-//-(void)setObject:object forReference:ref
-//{
-//    [self at:ref put:object];
-//}
-//
-//-(void)mergeObject:object forReference:ref
-//{
-//    [self merge:object at:ref];
-//}
-//
-
 
 @end
 
@@ -334,6 +358,9 @@
 {
     return aPath;
 }
+
+-(void)setEvaluator:anEvaluator {}
+-(id)evaluator { return nil; }
 
 @end
 

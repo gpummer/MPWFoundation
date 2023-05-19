@@ -8,6 +8,7 @@
 #import "MPWRESTOperation.h"
 #import <AccessorMacros.h>
 #import <MPWAbstractStore.h>
+#import "MPWJSONWriter.h"
 
 @implementation MPWRESTOperation
 
@@ -59,10 +60,21 @@ CONVENIENCEANDINIT( operation, WithReference:(id <MPWReferencing>)reference verb
     [super dealloc];
 }
 
+
 -(NSString *)description
 {
-    return [NSString stringWithFormat:@"<%@ %@>",[self HTTPVerb],self.reference];
+    return [NSString stringWithFormat:@"<%@ %@>\n",[self HTTPVerb],self.reference];
 }
+
+-(void)writeOnJSONStream:(MPWJSONWriter *)aStream
+{
+    [aStream writeDictionaryLikeObject:self withContentBlock:^(id object, MPWJSONWriter *writer) {
+        [writer writeString:self.HTTPVerb forKey:@"verb"];
+        [writer writeString:self.reference forKey:@"reference"];
+    }];
+}
+
+
 
 @end
 

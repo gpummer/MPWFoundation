@@ -67,6 +67,7 @@
 #import <MPWFoundation/MPWExternalFilter.h>
 #import <MPWFoundation/MPWRESTCopyStream.h>
 #import <MPWFoundation/MPWSkipFilter.h>
+#import <MPWFoundation/MPWExtensionAdder.h>
 
 #import <MPWFoundation/NSThreadWaiting.h>
 #import <MPWFoundation/MPWFuture.h>
@@ -128,7 +129,11 @@
 #import <MPWFoundation/MPWDirectoryBinding.h>
 #import <MPWFoundation/MPWFileBinding.h>
 #import <MPWFoundation/MPWPropertyStore.h>
+#import <MPWFoundation/MPWTCPStore.h>
+#import <MPWFoundation/MPWTCPBinding.h>
 #import <MPWFoundation/MPWURLSchemeResolver.h>
+#import <MPWFoundation/MPWSFTPStore.h>
+#import <MPWFoundation/MPWStreamableBinding.h>
 
 
 #import <MPWFoundation/MPWXmlGeneratorStream.h>

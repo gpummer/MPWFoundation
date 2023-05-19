@@ -48,10 +48,24 @@
     return nil;
 }
 
+-(NSString*)relativePath
+{
+    return [[self relativePathComponents] componentsJoinedByString:@"/"];
+}
 
 -(NSString*)urlPath
 {
     return [self.pathComponents componentsJoinedByString:@"/"] ?: @"";
+}
+
+-(const char*)UTF8String
+{
+    return [[self path] UTF8String];
+}
+
+-(NSComparisonResult)compare:other
+{
+    return [[self path] compare:[other path]];
 }
 
 @synthesize path;
@@ -94,7 +108,7 @@
 
 -(BOOL)isRoot
 {
-    return [self hasPrefix:@"/"];
+    return self.length == 0 || [self isEqual:@"/"];
 }
 
 -(id<MPWReferencing>)asReference

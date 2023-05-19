@@ -86,8 +86,11 @@ libMPWFoundation_OBJC_FILES = \
     Stores.subproj/MPWDictStore.m \
     Stores.subproj/MPWDirectoryBinding.m \
     Stores.subproj/MPWFileBinding.m \
+    Stores.subproj/MPWExtensionStore.m \
     Stores.subproj/MPWReference.m \
     Stores.subproj/MPWGenericReference.m \
+    Stores.subproj/MPWTCPStore.m \
+    Stores.subproj/MPWSFTPStore.m \
     Stores.subproj/MPWMappingStore.m \
     Stores.subproj/MPWCachingStore.m \
     Stores.subproj/MPWLoggingStore.m \
@@ -98,6 +101,7 @@ libMPWFoundation_OBJC_FILES = \
     Stores.subproj/MPWSequentialStore.m \
     Stores.subproj/MPWBinding.m \
     Stores.subproj/MPWPropertyBinding.m \
+    Stores.subproj/MPWTCPBinding.m \
     Stores.subproj/MPWPathRelativeStore.m \
     Stores.subproj/MPWURLBasedStore.m \
     Stores.subproj/MPWURLReference.m \
@@ -105,10 +109,12 @@ libMPWFoundation_OBJC_FILES = \
     Stores.subproj/MPWWriteBackCache.m \
     Stores.subproj/MPWURLSchemeResolver.m \
     Stores.subproj/MPWURLBinding.m \
+    Stores.subproj/MPWStreamableBinding.m \
     Streams.subproj/MPWByteStream.m \
     Streams.subproj/MPWFlattenStream.m \
     Streams.subproj/MPWArrayFlattenStream.m \
     Streams.subproj/MPWFilter.m \
+    Streams.subproj/MPWFileChangesStreamLinux.m \
     Streams.subproj/MPWFixedValueSource.m \
     Streams.subproj/MPWWriteStream.m \
     Streams.subproj/MPWRESTCopyStream.m \
@@ -161,6 +167,7 @@ libMPWFoundation_OBJC_FILES = \
     Classes/MPWFloat.m \
     Classes/MPWPoint.m \
     Classes/MPWRect.m \
+    Classes/MPWBlock.m \
     Classes/MPWBlockInvocable.m \
     Classes/MPWBoxerUnboxer.m \
     Classes/NSNil.m \

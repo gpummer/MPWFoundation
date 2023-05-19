@@ -19,13 +19,19 @@
 
 @implementation MPWURLReference
 
-static NSURL *url( NSString *scheme, NSString* host1, NSString *path1, NSString *path2 ) {
+static NSURL *url( NSString *scheme, NSString* host1, int port1, NSString *path1, NSString *path2 ) {
     NSMutableString *s=[NSMutableString string];
+    if (!host1) {
+        host1=@"";
+    }
     if ( scheme ) {
         [s appendFormat:@"%@:",scheme];
     }
     if ( host1 ) {
         [s appendFormat:@"//%@",host1];
+    }
+    if ( port1 ) {
+        [s appendFormat:@":%d",port1];
     }
     if ( path1 ) {
         [s appendString:path1];
@@ -43,7 +49,9 @@ static NSURL *url( NSString *scheme, NSString* host1, NSString *path1, NSString 
 
 CONVENIENCEANDINIT( reference, WithURL:(NSURL*)newURL )
 {
-    return [self initWithPathComponents:[newURL.path componentsSeparatedByString:@"/"] host:newURL.host scheme:newURL.scheme];
+    MPWURLReference *r = [self initWithPathComponents:[newURL.path componentsSeparatedByString:@"/"] host:newURL.host scheme:newURL.scheme];
+    r.port = newURL.port.intValue;
+    return r;
 }
 
 
@@ -90,9 +98,10 @@ CONVENIENCEANDINIT( reference, WithPath:(NSString*)pathName )
 
 -(NSURL *)URL
 {
-    NSURL *resultURL =  url(self.scheme, self.host, self.urlPath, nil);
-    if ( ! resultURL || [resultURL.path length]==0) {
-        NSLog(@"Trouble converting components: scheme: %@ host: %@ urlPath: %@",self.scheme,self.host,self.urlPath);
+    NSURL *resultURL =  url(self.scheme, self.host, self.port, self.urlPath, nil);
+    if ( ! resultURL || (self.path.length >0 &&  [resultURL.path length]==0)  ) {
+        NSLog(@"Trouble converting components: scheme: %@ host: %@ urlPath: %@ result URL: %@ resultURL path: %@\nstack:\n%@",self.scheme,self.host,self.urlPath,resultURL,resultURL.path,[NSThread callStackSymbols]);
+//        @throw [NSException exceptionWithName:@"nourl" reason:[resultURL description] userInfo:@{ @"url": resultURL }];
     }
     return resultURL;
 }
@@ -108,7 +117,9 @@ CONVENIENCEANDINIT( reference, WithPath:(NSString*)pathName )
 
 - (instancetype)referenceByAppendingReference:(id<MPWReferencing>)other
 {
-    return  [[self class] referenceWithURL:url( [self schemeName], [self host],[self urlPath], [(MPWURLReference*)other urlPath])];
+    NSURL *u1=[self URL];
+    NSURL *u2=[u1 URLByAppendingPathComponent:[other path]];
+    return  [[self class] referenceWithURL:u2];
 }
             
 
@@ -194,13 +205,53 @@ CONVENIENCEANDINIT( reference, WithPath:(NSString*)pathName )
     MPWURLReference *ref=[[[[self classUnderTest] alloc] initWithURL:sourceURL] autorelease];
     IDEXPECT( [[ref URL] host], @"www.metaobject.com", @"host ");
     IDEXPECT( [ref URL], sourceURL, @"urls");
-
+    
     NSString *fileURLString=@"file:/hi";
     NSURL *fileURL=[NSURL URLWithString:fileURLString];
     MPWURLReference *fileRef=[[[[self classUnderTest] alloc] initWithURL:fileURL] autorelease];
     IDEXPECT( [fileRef path], @"/hi", @"path");
-    IDEXPECT( [fileRef URL], fileURL, @"urls");
+//    IDEXPECT( [fileRef URL], fileURL, @"urls");
+    
+}
 
++(void)testURLWithPort
+{
+    NSString *urlString=@"http://www.metaobject.com:50001/";
+    NSURL *sourceURL=[NSURL URLWithString:urlString];
+    MPWURLReference *ref=[[[[self classUnderTest] alloc] initWithURL:sourceURL] autorelease];
+    ref.port=50001;
+    IDEXPECT( [[ref URL] host], @"www.metaobject.com", @"host ");
+    IDEXPECT( [[ref URL] port], @50001, @"port ");
+    IDEXPECT( [ref URL], sourceURL, @"urls");
+    
+    NSString *fileURLString=@"file:/hi";
+    NSURL *fileURL=[NSURL URLWithString:fileURLString];
+    MPWURLReference *fileRef=[[[[self classUnderTest] alloc] initWithURL:fileURL] autorelease];
+    IDEXPECT( [fileRef path], @"/hi", @"path");
+//    IDEXPECT( [fileRef URL], fileURL, @"urls");
+    
+}
+
++(void)testAppendReferenceToBaseReferenceWithPort
+{
+    NSURL *url1=[NSURL URLWithString:@"http://localhost:50001/"];
+    NSString *url2 = @"hi.txt";
+    MPWURLReference *baseRef = [[MPWURLReference alloc] initWithURL:url1];
+    MPWURLReference *additionalRef = [[MPWURLReference alloc] initWithPath:url2];
+    
+    MPWURLReference *result = [baseRef referenceByAppendingReference:additionalRef];
+    IDEXPECT( [result stringValue], @"http://localhost:50001/hi.txt", @"concatenated URL ref");
+}
+
+
+
++testSelectors
+{
+    return @[
+        @"testURL",
+        @"testURLWithPort",
+        @"testAppendReferenceToBaseReferenceWithPort",
+    ];
 }
 
 

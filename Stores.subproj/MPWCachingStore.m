@@ -33,6 +33,11 @@ CONVENIENCEANDINIT(store, WithSource:newSource )
     return [self initWithSource:newSource cache:[MPWDictStore store]];
 }
 
++(instancetype)memoryStore
+{
+    return [[[self alloc] initWithSource:nil cache:[MPWDictStore store]] autorelease];
+}
+
 -(instancetype)init
 {
     return [self initWithSource:nil cache:[MPWDictStore store]];
@@ -104,10 +109,14 @@ CONVENIENCEANDINIT(store, WithSource:newSource )
 -(NSArray<MPWReferencing>*)childrenOfReference:(id <MPWReferencing>)aReference
 {
     NSArray<MPWReferencing>* sourceRefs = [super childrenOfReference:aReference];
-    NSArray<MPWReferencing>* cacheRefs = [(id <MPWHierarchicalStorage>)self.cache childrenOfReference:aReference];
-    NSMutableSet<MPWReferencing> *allRefs=(NSMutableSet<MPWReferencing> *)[NSMutableSet setWithArray:sourceRefs];
-    [allRefs addObjectsFromArray:cacheRefs];
-    return (NSArray<MPWReferencing>*)(allRefs.allObjects);
+//    NSArray<MPWReferencing>* cacheRefs = [(id <MPWHierarchicalStorage>)self.cache childrenOfReference:aReference];
+//    NSMutableSet<MPWReferencing> *allRefs=(NSMutableSet<MPWReferencing> *)[NSMutableSet setWithArray:sourceRefs];
+//    [allRefs addObjectsFromArray:cacheRefs];
+//    NSLog(@"allRefs: %@",allRefs);
+//    NSArray<MPWReferencing>* sortedRefs= (NSArray<MPWReferencing>*)([allRefs.allObjects sortedArrayUsingSelector:@selector(compare:)]);
+//    NSLog(@"sortedRefs: %@",sortedRefs);
+//    return sortedRefs;
+    return sourceRefs;
 }
 
 -(void)graphViz:(MPWByteStream*)aStream
@@ -117,6 +126,11 @@ CONVENIENCEANDINIT(store, WithSource:newSource )
     [aStream printFormat:@"%@ -> %@ [label=source]\n",[self graphVizName],[self.source graphVizName]];
     [self.source graphViz:aStream];
     [aStream printFormat:@"\n"];
+}
+
+-(NSString *)description
+{
+    return [NSString stringWithFormat:@"<%@:%p source: %@ cache: %@>",self.class,self,self.source,self.cache];
 }
 
 -(void)dealloc

@@ -11,6 +11,13 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface MPWFileChangesStream : MPWStreamSource
 
+-(instancetype)initWithDirectoryPath:(NSString*)path;
+
+-(void)scheduleInRunLoop:(NSRunLoop*)runLoop;
+-(void)schedule;
+-(BOOL)start;
+-(void)stop;
+
 @end
 
 NS_ASSUME_NONNULL_END

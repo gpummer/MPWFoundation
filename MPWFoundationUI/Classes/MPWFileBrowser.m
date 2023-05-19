@@ -8,6 +8,7 @@
 #import "MPWFileBrowser.h"
 #import "MPWBrowser.h"
 #import <MPWFoundation/MPWFoundation.h>
+#import "MPWWindowController.h"
 
 @interface MPWFileBrowser ()
 
@@ -24,8 +25,14 @@
 
 -(instancetype)init
 {
-    return [self initWithNibName:@"MPWFileBrowser" bundle:[NSBundle bundleForClass:[self class]]];
+    self = [super initWithNibName:@"MPWFileBrowser" bundle:[NSBundle bundleForClass:[self class]]];
+    [self view];
+    NSLog(@"MPWFileBrowser: %p",self);
+    NSLog(@"browser target: %@",self.browser.target);
+    NSLog(@"browser action: %@",NSStringFromSelector(self.browser.action));
+    return self;
 }
+
 
 -(void)awakeFromNib
 {
@@ -78,6 +85,27 @@
     }
 }
 
+-(void)setStore:newStore
+{
+    self.browser.store=newStore;
+}
+
+-store
+{
+    return self.browser.store;
+}
+
+-openInWindow:(NSString*)windowName
+{
+    NSDocument *doc = [[NSDocumentController sharedDocumentController]   currentDocument];
+    NSWindow *window = [self.view openInWindow:windowName];
+    MPWWindowController *windowController=[[[MPWWindowController alloc] initWithWindow:window] autorelease];
+    windowController.viewController=self;
+    [doc addWindowController:windowController];
+    return window;
+}
+
+
 -(void)textDidChange:(NSNotification *)notification {
     if ( self.continuous ) {
         [self saveFileContents];
@@ -102,6 +130,13 @@
 -(NSDragOperation)browser:(NSBrowser *)browser validateDrop:(id<NSDraggingInfo>)info proposedRow:(NSInteger *)row column:(NSInteger *)column dropOperation:(NSBrowserDropOperation *)dropOperation
 {
     return NSDragOperationCopy;
+}
+
+-(void)dealloc
+{
+    [_browser release];
+    NSLog(@"deallocating MPWFileBrowser: %p",self);
+    [super dealloc];
 }
 
 @end

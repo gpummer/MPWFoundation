@@ -31,7 +31,7 @@
 -(id <MPWReferencing>)mapReference:(MPWGenericReference *)aReference
 {
     id mapped = [self.baseReference referenceByAppendingReference:aReference];
-    //    NSLog(@"map ref from %@ -> %@ via prefix : %@",aReference,mapped,self.baseReference);
+//    NSLog(@"map ref from %@ -> %@ via prefix : %@",aReference,mapped,self.baseReference);
     return mapped;
 }
 
@@ -55,18 +55,6 @@
     return [NSString stringWithFormat:@"\"Relative:\\n%@\"",[self.baseReference pathComponents].lastObject];
 }
 
-
-
--childrenOfReference:aReference
-{
-    id mappedReference = [self mapReference:aReference];
-    NSArray *refs=[self.source childrenOfReference:mappedReference];
-    NSMutableArray *result = [NSMutableArray array];
-    for ( id<MPWReferencing> ref in refs ) {
-        [result addObject:[self reverseMapReference:ref]];
-    }
-    return result;
-}
 
 -(void)dealloc
 {
